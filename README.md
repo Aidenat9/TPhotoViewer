@@ -1,2 +1,2 @@
 # TPhotoViewer
-一个图片浏览功能，支持单张、多张，采用流行的转场过渡动画，手势关闭，放大缩小查看
+An example of picture browsing, including multi-finger gestures, zooming, transitions and changes to the status bar. 
