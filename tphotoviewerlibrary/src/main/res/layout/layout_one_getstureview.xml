@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:id="@+id/single_image_back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_bg"
+        android:visibility="invisible" />
+
+    <com.alexvasilkov.gestures.views.GestureImageView
+        android:id="@+id/single_image_full"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible" />
+    <android.support.v4.widget.ContentLoadingProgressBar
+        android:id="@+id/cprogressbar"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="38dp"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_height="38dp" />
+</FrameLayout>
