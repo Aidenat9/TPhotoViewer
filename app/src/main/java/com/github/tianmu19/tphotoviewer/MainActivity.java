@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import com.alexvasilkov.gestures.transition.ViewsTransitionAnimator;
 import com.alexvasilkov.gestures.utils.GlideHelper;
 import com.github.tianmu19.tphotoviewerlibrary.StatusBarUtil;
-import com.github.tianmu19.tphotoviewerlibrary.TImageEntity;
+import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
 import com.github.tianmu19.tphotoviewerlibrary.TPhotoViewer;
 import com.klogutil.KLog;
 
@@ -26,15 +26,15 @@ public class MainActivity extends AppCompatActivity {
         StatusBarUtil.setTranslucent(this);
         FrameLayout rootview = findViewById(R.id.rootview);
         ImageView image = findViewById(R.id.single_image_from);
-        GlideHelper.loadThumb(image, image.getWidth(), image.getHeight(), photoUrl,10);
+        GlideHelper.loadThumb(image, image.getWidth(), image.getHeight(), photoUrl, (int) Utils.dp2px(10));
         //1.绑定 imageview和上下文，图片地址
 //        TphotoUtil.getInstance().click(this, image, photoUrl);
         //2.
-        TImageEntity entity = new TImageEntity();
+        TImgBean entity = new TImgBean();
         entity.setOriginUrl(photoUrl);
         entity.setThumbUrl(photoUrl);
         KLog.e("___oncreate");
-        animator = TPhotoViewer.getInstance().clickDisplayOne(this, image, rootview, entity);
+        animator = TPhotoViewer.getInstance().clickDisplayOne(this, image, entity);
     }
 
     @Override

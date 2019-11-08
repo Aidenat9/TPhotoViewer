@@ -4,8 +4,6 @@
     android:layout_height="100dp"
     android:background="?attr/selectableItemBackground"
     >
-
-
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"

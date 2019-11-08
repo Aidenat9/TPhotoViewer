@@ -9,7 +9,7 @@ import android.widget.ImageView;
 
 import com.alexvasilkov.gestures.utils.GlideHelper;
 import com.github.tianmu19.tphotoviewerlibrary.R;
-import com.github.tianmu19.tphotoviewerlibrary.TImageEntity;
+import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
 import com.klogutil.KLog;
 
 import java.util.List;
@@ -22,10 +22,10 @@ import java.util.List;
  * <p>description:            </p>
  */
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyViewholder> {
-    private List<TImageEntity> imageUrls;
+    private List<TImgBean> imageUrls;
     private ImageClickListener listener;
 
-    public RecyclerAdapter(List<TImageEntity> imageUrls) {
+    public RecyclerAdapter(List<TImgBean> imageUrls) {
         this.imageUrls = imageUrls;
     }
 
@@ -54,7 +54,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
             }
         });        KLog.e("holder :"+i);
 
-        GlideHelper.loadThumb(myViewholder.imageView, myViewholder.imageView.getWidth(),myViewholder.imageView.getHeight(), imageUrls.get(i).getThumbUrl(), 20);
+        GlideHelper.loadThumb(myViewholder.imageView, myViewholder.imageView.getWidth(),myViewholder.imageView.getHeight(),
+                imageUrls.get(i).getThumbUrl(), 20,R.drawable.img_placeholder);
     }
 
 

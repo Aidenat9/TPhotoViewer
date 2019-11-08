@@ -1,10 +1,11 @@
 package com.github.tianmu19.tphotoviewerlibrary;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -18,12 +19,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.alexvasilkov.gestures.animation.ViewPositionAnimator;
-import com.alexvasilkov.gestures.commons.DepthPageTransformer;
 import com.alexvasilkov.gestures.commons.RecyclePagerAdapter;
 import com.alexvasilkov.gestures.transition.GestureTransitions;
 import com.alexvasilkov.gestures.transition.ViewsTransitionAnimator;
 import com.alexvasilkov.gestures.transition.tracker.SimpleTracker;
 import com.alexvasilkov.gestures.views.GestureImageView;
+import com.alexvasilkov.gestures.views.HackyViewPager;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
@@ -45,22 +46,20 @@ import me.zhanghai.android.systemuihelper.SystemUiHelper;
  * <p>description:    图片浏览工具        </p
  */
 public class TPhotoViewer {
-
     private LayoutInflater inflater;
-    private Activity activity;
-    private View decorView;
     private PhotoPagerAdapter pagerAdapter;
     private ContentLoadingProgressBar contentLoadingProgressBar;
     private SystemUiHelper mSystemUiHelper;
+    final static String SEP = "/";
 
     public static TPhotoViewer getInstance() {
         return InstanceHolder.ourInstance;
     }
 
     private static class InstanceHolder {
+        @SuppressLint("StaticFieldLeak")
         private static final TPhotoViewer ourInstance = new TPhotoViewer();
     }
-
 
     private TPhotoViewer() {
     }
@@ -68,40 +67,27 @@ public class TPhotoViewer {
     /**
      * 在viewpager中展示图片
      *
-     * @param context
-     * @param recyclerView
-     * @param rootViewGroup
-     * @param imageUrls
+     * @param activity     展示的载体
+     * @param recyclerView 列表
+     * @param imageUrls    图片集合
      */
-    public ViewsTransitionAnimator<Integer> clickDisplay(@NonNull Context context, @NonNull RecyclerView recyclerView, @NonNull ViewGroup rootViewGroup, @NonNull List<TImageEntity> imageUrls) {
-        inflater = LayoutInflater.from(context);
-        //1.add viewgroup
-        View viewpager_layout = inflater.inflate(R.layout.layout_viewpager_gallery, rootViewGroup, false);
-        rootViewGroup.addView(viewpager_layout);
-        //得到当前界面的装饰视图
-        if (context instanceof Activity) {
-            activity = (Activity) context;
-            decorView = activity.getWindow().getDecorView();
-        }
-        //2. init ViewPager
-        ViewPager viewPager = viewpager_layout.findViewById(R.id.recycler_pager);
-        TextView tvDot = viewpager_layout.findViewById(R.id.tv_dot);
-        View background = viewpager_layout.findViewById(R.id.recycler_full_background);
-
-        viewPager.setPageTransformer(true, new DepthPageTransformer());
+    public ViewsTransitionAnimator<Integer> clickDisplay(@NonNull Activity activity, @NonNull RecyclerView recyclerView, @NonNull List<TImgBean> imageUrls) {
+        inflater = LayoutInflater.from(activity);
+        //状态栏颜色变化初始化
+        registerSystemUiListener(activity);
+        //1.得到当前界面的视图
+        ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
+        //2.add viewgroup
+        View view = inflater.inflate(R.layout.layout_viewpager_gallery, rootViewGroup, false);
+        rootViewGroup.addView(view);
+        //3. init ViewPager
+        HackyViewPager viewPager = view.findViewById(R.id.recycler_pager);
+        TextView tvDot = view.findViewById(R.id.tv_dot);
+        View background = view.findViewById(R.id.recycler_full_background);
         pagerAdapter = new PhotoPagerAdapter(viewPager);
         viewPager.setAdapter(pagerAdapter);
         pagerAdapter.setPhotos(imageUrls);
-        pagerAdapter.notifyDataSetChanged();
-//        ViewPager.SimpleOnPageChangeListener pagerListener = new ViewPager.SimpleOnPageChangeListener() {
-//            @Override
-//            public void onPageSelected(int position) {
-//            }
-//        };
-//        viewPager.addOnPageChangeListener(pagerListener);
-        registerSystemUiListener(activity);
-
-        //3.init tracker & anim
+        //4.init tracker & anim
         final SimpleTracker gridTracker = new SimpleTracker() {
             @Override
             public View getViewAt(int pos) {
@@ -124,43 +110,44 @@ public class TPhotoViewer {
         animator.addPositionUpdateListener(new ViewPositionAnimator.PositionUpdateListener() {
             @Override
             public void onPositionUpdate(float position, boolean isLeaving) {
-                applyImageAnimationState(position, background, tvDot, decorView, activity, isLeaving);
+                applyImageAnimationState(position, background, tvDot, activity, isLeaving);
             }
         });
-        //3.process anim
+        //5.process anim
         RecyclerAdapter adapter = (RecyclerAdapter) recyclerView.getAdapter();
-        adapter.setImageClickListener(new RecyclerAdapter.ImageClickListener() {
-            @Override
-            public void onClick(int position) {
-                if (null != tvDot) {
-                    tvDot.setText((position + 1) + "/" + imageUrls.size());
+        int size = imageUrls.size();
+        if (null != adapter) {
+            adapter.setImageClickListener(new RecyclerAdapter.ImageClickListener() {
+                @Override
+                public void onClick(int pos) {
+                    if (null != tvDot) {
+                        tvDot.setText((pos + 1) + SEP + size);
+                    }
+                    pagerAdapter.setActivated(true);
+                    animator.enter(pos, true);
+                    showFullScreen(true);
                 }
-                pagerAdapter.setActivated(true);
-                animator.enter(position, true);
-                showFullScreen(true);
-            }
-        });
+            });
+        }
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
-
             }
 
             @Override
             public void onPageSelected(int i) {
                 if (null != tvDot) {
-                    tvDot.setText((i + 1) + "/" + imageUrls.size());
+                    tvDot.setText((i + 1) + SEP + size);
                 }
             }
 
             @Override
             public void onPageScrollStateChanged(int i) {
-
             }
         });
         pagerAdapter.setImageClickListener(new PhotoPagerAdapter.ImageClickListener() {
             @Override
-            public void onFullImageClick() {
+            public void onClickFullImage() {
                 if (!animator.isLeaving()) {
                     animator.exit(true);
                     showFullScreen(false);
@@ -174,8 +161,8 @@ public class TPhotoViewer {
      * 改变viewpager的背景色
      */
     private void applyImageAnimationState(float position, View background, TextView tvDot
-            , View decorView, Activity activity, boolean isLeaving) {
-        if (null == decorView || null == activity) {
+            , Activity activity, boolean isLeaving) {
+        if (null == activity) {
             return;
         }
         background.setVisibility(position == 0f ? View.INVISIBLE : View.VISIBLE);
@@ -192,32 +179,29 @@ public class TPhotoViewer {
     /**
      * ---------------单张图片----
      *
-     * @param context       context
-     * @param imageView     源图
-     * @param rootViewGroup 父布局
-     * @param tImageEntity  数据
+     * @param activity   activity
+     * @param imageView  源图
+     * @param tImgBean 数据
      * @return ViewsTransitionAnimator
      */
-    public ViewsTransitionAnimator clickDisplayOne(@NonNull Context context, @NonNull View imageView, @NonNull ViewGroup rootViewGroup, @NonNull TImageEntity tImageEntity) {
+    public ViewsTransitionAnimator clickDisplayOne(@NonNull Activity activity, @NonNull View imageView, @NonNull TImgBean tImgBean) {
         if (!(imageView instanceof ImageView)) {
             return null;
         }
-
-        inflater = LayoutInflater.from(context);
-        if (context instanceof Activity) {
-            activity = (Activity) context;
-        }
+        inflater = LayoutInflater.from(activity);
+        //状态栏颜色变化初始化
         registerSystemUiListener(activity);
+        ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
         //1.add group
-        View one_gestureview = inflater.inflate(R.layout.layout_one_getstureview, rootViewGroup, false);
-        rootViewGroup.addView(one_gestureview);
+        View gestureview = inflater.inflate(R.layout.layout_one_getstureview, rootViewGroup, false);
+        rootViewGroup.addView(gestureview);
         //2.init getstureview
-        GestureImageView fullImage = one_gestureview.findViewById(R.id.single_image_full);
-        contentLoadingProgressBar = one_gestureview.findViewById(R.id.cprogressbar);
-        contentLoadingProgressBar.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(context, R.color.blue_material), PorterDuff.Mode.MULTIPLY);
+        GestureImageView fullImage = gestureview.findViewById(R.id.single_image_full);
+        contentLoadingProgressBar = gestureview.findViewById(R.id.cprogressbar);
+        contentLoadingProgressBar.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(activity, R.color.blue_material), PorterDuff.Mode.MULTIPLY);
         hideContentProgress();
 
-        View fullBackground = one_gestureview.findViewById(R.id.single_image_back);
+        View fullBackground = gestureview.findViewById(R.id.single_image_back);
 
         ImageView image = (ImageView) imageView;
         //3.init anim
@@ -229,7 +213,7 @@ public class TPhotoViewer {
                 fullBackground.setAlpha(position);
                 fullBackground.setVisibility(position == 0f && isLeaving ? View.INVISIBLE : View.VISIBLE);
                 fullImage.setVisibility(position == 0f && isLeaving ? View.INVISIBLE : View.VISIBLE);
-                image.setVisibility(position == 0f && isLeaving ? View.VISIBLE : View.INVISIBLE);
+//                image.setVisibility(position == 0f && isLeaving ? View.VISIBLE : View.INVISIBLE);
                 if (isLeaving && position == 0f) {
                     showFullScreen(false);
                 }
@@ -250,11 +234,11 @@ public class TPhotoViewer {
 
             private void showOneFullImage() {
                 final RequestOptions options = new RequestOptions()
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .override(Target.SIZE_ORIGINAL)
                         .dontTransform();
                 showContentProgress();
-                Glide.with(context).load(tImageEntity.getOriginUrl())
+                Glide.with(activity).load(tImgBean.getOriginUrl())
                         .apply(options).thumbnail(0.5f)
                         .into(new DrawableImageViewTarget(fullImage) {
                             @Override
@@ -290,9 +274,6 @@ public class TPhotoViewer {
     }
 
 
-
-
-
     private void showContentProgress() {
         contentLoadingProgressBar.setVisibility(View.VISIBLE);
         contentLoadingProgressBar.show();
@@ -307,7 +288,7 @@ public class TPhotoViewer {
 
     private void registerSystemUiListener(Activity activity) {
         mSystemUiHelper = new SystemUiHelper(activity, SystemUiHelper.LEVEL_LOW_PROFILE,
-                SystemUiHelper.FLAG_IMMERSIVE_STICKY, new SystemUiHelper.OnVisibilityChangeListener() {
+                SystemUiHelper.FLAG_LAYOUT_IN_SCREEN_OLDER_DEVICES, new SystemUiHelper.OnVisibilityChangeListener() {
             @Override
             public void onVisibilityChange(boolean visible) {
                 if (!visible) {
@@ -324,7 +305,12 @@ public class TPhotoViewer {
      */
     private void showFullScreen(boolean show) {
         if (show) {
-            mSystemUiHelper.hide();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mSystemUiHelper.hide();
+                }
+            }, 500);
         } else {
             mSystemUiHelper.show();
         }

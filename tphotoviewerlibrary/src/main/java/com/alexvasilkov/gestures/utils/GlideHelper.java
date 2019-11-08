@@ -14,12 +14,12 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
-import com.github.tianmu19.tphotoviewerlibrary.TImageEntity;
+import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
 import com.klogutil.KLog;
 
 public class GlideHelper {
 
-    private static final RequestOptions OPTIONS = new RequestOptions()
+    private static RequestOptions OPTIONS = new RequestOptions()
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .override(Target.SIZE_ORIGINAL)
             .dontAnimate()
@@ -29,11 +29,17 @@ public class GlideHelper {
     }
 
     public static void loadThumb(@NonNull ImageView imageView,@NonNull int width,@NonNull int height, @NonNull String photoUrl, int roudCorner) {
+        loadThumb(imageView,width,height,photoUrl,roudCorner,-1);
+    }
+    public static void loadThumb(@NonNull ImageView imageView,@NonNull int width,@NonNull int height, @NonNull String photoUrl, int roudCorner,int placeholder) {
 
-        final RequestOptions options = new RequestOptions()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
+        RequestOptions options = new RequestOptions()
+                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .override(width,height)
                 .transform(new RoundedCorners(roudCorner)).dontAnimate();
+        if(-1!=placeholder){
+            options = options.placeholder(placeholder).error(placeholder);
+        }
         Glide.with(imageView.getContext())
                 .load(photoUrl)
                 .apply(options)
@@ -41,13 +47,19 @@ public class GlideHelper {
                 .into(imageView);
     }
 
-    public static void loadFull(@NonNull TImageEntity photo, @NonNull ImageView image, @NonNull LoadingListener listener) {
+    public static void loadFull(@NonNull TImgBean photo, @NonNull ImageView image, @NonNull LoadingListener listener) {
+        loadFull(photo,image,-1,listener);
+    }
+    public static void loadFull(@NonNull TImgBean photo, @NonNull ImageView image,int placeholder, @NonNull LoadingListener listener) {
         final String photoUrl = photo.getOriginUrl() == null
                 ? photo.getThumbUrl() : photo.getOriginUrl();
-        final RequestOptions options = OPTIONS;
+        RequestOptions options = OPTIONS;
         final RequestBuilder<Drawable> thumbRequest = Glide.with(image.getContext())
                 .load(photo.getThumbUrl()).thumbnail(THUMBNAIL)
                 .apply(options);
+        if(-1!=placeholder){
+            options = options.placeholder(placeholder).error(placeholder);
+        }
         Glide.with(image)
                 .load(photoUrl)
                 .apply(new RequestOptions().apply(options).placeholder(image.getDrawable()))

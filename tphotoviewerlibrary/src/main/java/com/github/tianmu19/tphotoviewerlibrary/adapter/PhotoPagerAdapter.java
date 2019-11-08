@@ -10,17 +10,22 @@ import com.alexvasilkov.gestures.utils.GlideHelper;
 import com.alexvasilkov.gestures.views.GestureImageView;
 import com.alexvasilkov.gestures.views.Views;
 import com.github.tianmu19.tphotoviewerlibrary.R;
-import com.github.tianmu19.tphotoviewerlibrary.TImageEntity;
+import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
 
 import java.util.List;
 
+/**
+ * @author sunwei
+ * email：tianmu19@gmail.com
+ * date：2019/11/8 22:22
+ * version：1.0
+ * <p>description：viewpager的适配器   </p>
+ */
 
 public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.ViewHolder> {
 
-    private static final long PROGRESS_DELAY = 300L;
-
     private final ViewPager viewPager;
-    private List<TImageEntity> photos;
+    private List<TImgBean> photos;
     private ImageClickListener clickListener;
 
     private boolean activated;
@@ -29,12 +34,12 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
         this.viewPager = viewPager;
     }
 
-    public void setPhotos(List<TImageEntity> photos) {
-        this.photos = photos;
+    public void setPhotos(List<TImgBean> photos1) {
+        this.photos = photos1;
         notifyDataSetChanged();
     }
 
-    public TImageEntity getPhoto(int pos) {
+    public TImgBean getPhoto(int pos) {
         return photos == null || pos < 0 || pos >= photos.size() ? null : photos.get(pos);
     }
 
@@ -63,10 +68,7 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup container) {
         final ViewHolder holder = new ViewHolder(container);
-
         holder.image.setOnClickListener(view -> onImageClick());
-
-
         holder.image.getController().enableScrollInViewPager(viewPager);
         holder.image.getPositionAnimator().addPositionUpdateListener((position, isLeaving) ->
                 holder.progress.setVisibility(position == 1f ? View.VISIBLE : View.INVISIBLE));
@@ -75,19 +77,16 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-
+        final long PROGRESS_DELAY = 300L;
         holder.progress.animate().setStartDelay(PROGRESS_DELAY).alpha(1f);
-
-        TImageEntity photo = photos.get(position);
-
+        TImgBean photo = photos.get(position);
         // Loading image
-        GlideHelper.loadFull(photo, holder.image, new GlideHelper.LoadingListener() {
+        GlideHelper.loadFull(photo, holder.image,R.drawable.img_placeholder, new GlideHelper.LoadingListener() {
             @Override
             public void onSuccess() {
                 holder.progress.animate().cancel();
                 holder.progress.animate().alpha(0f);
             }
-
             @Override
             public void onError() {
                 holder.progress.animate().alpha(0f);
@@ -98,18 +97,15 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
     @Override
     public void onRecycleViewHolder(@NonNull ViewHolder holder) {
         super.onRecycleViewHolder(holder);
-
         GlideHelper.clear(holder.image);
-
         holder.progress.animate().cancel();
         holder.progress.setAlpha(0f);
-
         holder.image.setImageDrawable(null);
     }
 
     private void onImageClick() {
         if (clickListener != null) {
-            clickListener.onFullImageClick();
+            clickListener.onClickFullImage();
         }
     }
 
@@ -120,7 +116,6 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
     static class ViewHolder extends RecyclePagerAdapter.ViewHolder {
         final GestureImageView image;
         final View progress;
-
         ViewHolder(ViewGroup parent) {
             super(Views.inflate(parent, R.layout.item_viewpager));
             image = itemView.findViewById(R.id.photo_full_image);
@@ -129,7 +124,7 @@ public class PhotoPagerAdapter extends RecyclePagerAdapter<PhotoPagerAdapter.Vie
     }
 
     public interface ImageClickListener {
-        void onFullImageClick();
+        void onClickFullImage();
     }
 
 }

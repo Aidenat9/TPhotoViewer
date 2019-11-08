@@ -5,13 +5,13 @@ package com.github.tianmu19.tphotoviewerlibrary;
  * 邮箱：tianmu19@gmail.com
  * 时间：2019/3/21 21:49
  * 包名：com.github.tianmu19.tphotoviewerlibrary
- * <p>description:   图片类         </p>
+ * <p>description:   图片信息         </p>
  */
-public class TImageEntity {
+public class TImgBean {
     private String thumbUrl;
     private String originUrl;
     private String desc;
-    private String date ;
+    private String date;
 
     public String getDate() {
         return date == null ? "" : date;

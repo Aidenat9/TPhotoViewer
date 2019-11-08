@@ -33,7 +33,7 @@
             android:id="@+id/single_image_from"
             android:layout_width="144dp"
             android:layout_height="144dp"
-            android:scaleType="centerCrop"
+            android:scaleType="fitCenter"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="40dp" />
 

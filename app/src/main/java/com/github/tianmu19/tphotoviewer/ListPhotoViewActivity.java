@@ -9,21 +9,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.FrameLayout;
 
 import com.alexvasilkov.gestures.transition.ViewsTransitionAnimator;
 import com.github.tianmu19.tphotoviewerlibrary.StatusBarUtil;
-import com.github.tianmu19.tphotoviewerlibrary.TImageEntity;
+import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
 import com.github.tianmu19.tphotoviewerlibrary.TPhotoViewer;
 import com.github.tianmu19.tphotoviewerlibrary.adapter.RecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author sunwei
+ * email：tianmu19@gmail.com
+ * date：2019/11/8 22:32
+ * version：1.0
+ * <p>description：点击列表图片 展示在viewpager中   </p>
+ */
+
 public class ListPhotoViewActivity extends AppCompatActivity {
-
-
-    private List<TImageEntity> imageUrls;//图片地址
+    private List<TImgBean> imageUrls;//图片地址
     private ViewsTransitionAnimator<Integer> animator;
 
     @Override
@@ -36,9 +41,7 @@ public class ListPhotoViewActivity extends AppCompatActivity {
     }
 
     private void initRecyclerView() {
-        FrameLayout rootView = findViewById(R.id.fl_root);
-        // Initializing ListView
-        //必需
+        // 1.Initializing RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recycler_list);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -60,7 +63,7 @@ public class ListPhotoViewActivity extends AppCompatActivity {
         });
         RecyclerAdapter adapter = new RecyclerAdapter(imageUrls);
         recyclerView.setAdapter(adapter);
-        animator = TPhotoViewer.getInstance().clickDisplay(this, recyclerView, rootView, imageUrls);
+        animator = TPhotoViewer.getInstance().clickDisplay(this, recyclerView, imageUrls);
     }
 
     @Override
@@ -74,10 +77,10 @@ public class ListPhotoViewActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        imageUrls = new ArrayList<TImageEntity>();
+        imageUrls = new ArrayList<TImgBean>();
         String[] arrayImageUrls = getResources().getStringArray(R.array.imageUrls);
         for (int i = 0; i < arrayImageUrls.length; i++) {
-            TImageEntity entity = new TImageEntity();
+            TImgBean entity = new TImgBean();
             entity.setThumbUrl(arrayImageUrls[i]);
             entity.setOriginUrl(arrayImageUrls[i]);
             imageUrls.add(entity);

@@ -6,5 +6,6 @@
     <color name="accent">#F57F17</color>
     <color name="color_bg">#121212</color>
     <color name="blue_material">#42A5F5</color>
+    <color name="color_placeholder">#bfbfbf</color>
 
 </resources>

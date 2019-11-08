@@ -9,8 +9,8 @@
         android:id="@+id/photo_full_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:gest_doubleTapZoom="3"
-        app:gest_maxZoom="10" />
+        app:gest_doubleTapZoom="2"
+        app:gest_maxZoom="6" />
 
     <ProgressBar
         android:id="@+id/photo_full_progress"
