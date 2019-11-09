@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import com.alexvasilkov.gestures.utils.GlideHelper;
 import com.github.tianmu19.tphotoviewerlibrary.R;
 import com.github.tianmu19.tphotoviewerlibrary.TImgBean;
-import com.klogutil.KLog;
 
 import java.util.List;
 
@@ -41,9 +40,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
     @Override
     public MyViewholder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View inflate = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_rv, viewGroup, false);
-        MyViewholder myViewholder = new MyViewholder(inflate);
-
-        return myViewholder;
+        return new MyViewholder(inflate);
     }
 
     @Override
@@ -52,17 +49,24 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
             if (null != listener) {
                 listener.onClick(i);
             }
-        });        KLog.e("holder :"+i);
-
-        GlideHelper.loadThumb(myViewholder.imageView, myViewholder.imageView.getWidth(),myViewholder.imageView.getHeight(),
-                imageUrls.get(i).getThumbUrl(), 20,R.drawable.img_placeholder);
+        });
+        GlideHelper.loadThumb(myViewholder.imageView, myViewholder.imageView.getWidth(), myViewholder.imageView.getHeight(),
+                imageUrls.get(i).getThumbUrl(), 10, R.drawable.img_placeholder);
     }
 
 
-
-    public static ImageView getImageView(RecyclerView.ViewHolder holder) {
+    public ImageView getImageView(RecyclerView.ViewHolder holder) {
         if (holder instanceof MyViewholder) {
             return ((MyViewholder) holder).imageView;
+        } else {
+            return null;
+        }
+    }
+
+    public ImageView getImageView(RecyclerView.ViewHolder holder, int pos) {
+        if (holder instanceof MyViewholder) {
+            return pos >= 0 && pos < imageUrls.size() ? ((MyViewholder) holder).imageView : null;
+
         } else {
             return null;
         }

@@ -51,6 +51,10 @@ public class TPhotoViewer {
     private ContentLoadingProgressBar contentLoadingProgressBar;
     private SystemUiHelper mSystemUiHelper;
     final static String SEP = "/";
+    private ViewsTransitionAnimator<Integer> animator;
+    private HackyViewPager viewPager;
+    private View view;
+    private ViewGroup rootViewGroup;
 
     public static TPhotoViewer getInstance() {
         return InstanceHolder.ourInstance;
@@ -76,23 +80,25 @@ public class TPhotoViewer {
         //状态栏颜色变化初始化
         registerSystemUiListener(activity);
         //1.得到当前界面的视图
-        ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
+        rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
         //2.add viewgroup
-        View view = inflater.inflate(R.layout.layout_viewpager_gallery, rootViewGroup, false);
+        view = inflater.inflate(R.layout.layout_viewpager_gallery, rootViewGroup, false);
         rootViewGroup.addView(view);
         //3. init ViewPager
-        HackyViewPager viewPager = view.findViewById(R.id.recycler_pager);
+        viewPager = view.findViewById(R.id.recycler_pager);
         TextView tvDot = view.findViewById(R.id.tv_dot);
         View background = view.findViewById(R.id.recycler_full_background);
         pagerAdapter = new PhotoPagerAdapter(viewPager);
         viewPager.setAdapter(pagerAdapter);
         pagerAdapter.setPhotos(imageUrls);
+        RecyclerAdapter adapter = (RecyclerAdapter) recyclerView.getAdapter();
+
         //4.init tracker & anim
         final SimpleTracker gridTracker = new SimpleTracker() {
             @Override
             public View getViewAt(int pos) {
                 RecyclerView.ViewHolder holder = recyclerView.findViewHolderForLayoutPosition(pos);
-                return holder == null ? null : RecyclerAdapter.getImageView(holder);
+                return holder == null ? null : adapter.getImageView(holder);
             }
         };
 
@@ -104,7 +110,7 @@ public class TPhotoViewer {
             }
         };
 
-        ViewsTransitionAnimator<Integer> animator = GestureTransitions.from(recyclerView, gridTracker)
+        animator = GestureTransitions.from(recyclerView, gridTracker)
                 .into(viewPager, pagerTracker);
 
         animator.addPositionUpdateListener(new ViewPositionAnimator.PositionUpdateListener() {
@@ -114,7 +120,6 @@ public class TPhotoViewer {
             }
         });
         //5.process anim
-        RecyclerAdapter adapter = (RecyclerAdapter) recyclerView.getAdapter();
         int size = imageUrls.size();
         if (null != adapter) {
             adapter.setImageClickListener(new RecyclerAdapter.ImageClickListener() {
@@ -170,11 +175,20 @@ public class TPhotoViewer {
         tvDot.setVisibility(position == 0f ? View.INVISIBLE : View.VISIBLE);
         tvDot.setAlpha(position);
         if (isLeaving && position == 0f) {
-            if (null != pagerAdapter) pagerAdapter.setActivated(false);
+            if (null != pagerAdapter){
+                pagerAdapter.setActivated(false);
+            }
             showFullScreen(false);
         }
+//        // Fading out images without "from" position
+//        if (animator.getFromView() == null && isLeaving) {
+//            float toPosition = animator.getToView() == null
+//                    ? 1f : animator.getToView().getPositionAnimator().getToPosition();
+//            viewPager.setAlpha(position / toPosition);
+//        } else {
+//            viewPager.setAlpha(1f);
+//        }
     }
-
 
     /**
      * ---------------单张图片----

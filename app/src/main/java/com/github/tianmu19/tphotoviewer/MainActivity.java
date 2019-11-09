@@ -49,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
     public void toListActivity(View view){
         startActivity(new Intent(getBaseContext(),ListPhotoViewActivity.class));
     }
+    public void toListActivity2(View view){
+        startActivity(new Intent(getBaseContext(),ListPhotoViewActivity2.class));
+    }
     public void toDemoActivity(View view){
     }
 

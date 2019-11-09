@@ -13,13 +13,28 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:showDividers="middle"
+        android:divider="@android:drawable/divider_horizontal_bright"
         android:orientation="vertical">
 
-        <Button
+        <android.support.v7.widget.AppCompatButton
             android:onClick="toListActivity"
             android:text="recyclerView to viewpager"
+            android:textAllCaps="false"
+            android:background="#0097a7"
+            android:textColor="#fff"
+            android:textSize="18sp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="55dp" />
+        <android.support.v7.widget.AppCompatButton
+            android:onClick="toListActivity2"
+            android:textAllCaps="false"
+            android:background="#00796b"
+            android:textColor="#fff"
+            android:textSize="18sp"
+            android:text="recyclerView to viewpager 2"
+            android:layout_width="match_parent"
+            android:layout_height="55dp" />
 
 
         <TextView
