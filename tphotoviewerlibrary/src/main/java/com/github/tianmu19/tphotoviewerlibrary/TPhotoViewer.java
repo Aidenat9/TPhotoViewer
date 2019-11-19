@@ -1,22 +1,27 @@
 package com.github.tianmu19.tphotoviewerlibrary;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Color;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
+import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.ContentLoadingProgressBar;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alexvasilkov.gestures.animation.ViewPositionAnimator;
 import com.alexvasilkov.gestures.commons.RecyclePagerAdapter;
@@ -29,14 +34,19 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.DrawableImageViewTarget;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.github.tianmu19.tphotoviewerlibrary.adapter.PhotoPagerAdapter;
 import com.github.tianmu19.tphotoviewerlibrary.adapter.RecyclerAdapter;
+import com.klogutil.KLog;
 
+import java.io.File;
 import java.util.List;
 
 import me.zhanghai.android.systemuihelper.SystemUiHelper;
+
+import static com.github.tianmu19.tphotoviewerlibrary.FileUtil.FOLDER;
 
 /**
  * @author sunwei
@@ -77,8 +87,6 @@ public class TPhotoViewer {
      */
     public ViewsTransitionAnimator<Integer> clickDisplay(@NonNull Activity activity, @NonNull RecyclerView recyclerView, @NonNull List<TImgBean> imageUrls) {
         inflater = LayoutInflater.from(activity);
-        //状态栏颜色变化初始化
-        registerSystemUiListener(activity);
         //1.得到当前界面的视图
         rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
         //2.add viewgroup
@@ -88,6 +96,11 @@ public class TPhotoViewer {
         viewPager = view.findViewById(R.id.recycler_pager);
         TextView tvDot = view.findViewById(R.id.tv_dot);
         View background = view.findViewById(R.id.recycler_full_background);
+        ImageView btn = view.findViewById(R.id.iv_download);
+        btn.setOnClickListener(v->{
+            int i = viewPager.getCurrentItem();
+            downloadImg(imageUrls.get(i).getOriginUrl(),activity);
+        });
         pagerAdapter = new PhotoPagerAdapter(viewPager);
         viewPager.setAdapter(pagerAdapter);
         pagerAdapter.setPhotos(imageUrls);
@@ -116,7 +129,7 @@ public class TPhotoViewer {
         animator.addPositionUpdateListener(new ViewPositionAnimator.PositionUpdateListener() {
             @Override
             public void onPositionUpdate(float position, boolean isLeaving) {
-                applyImageAnimationState(position, background, tvDot, activity, isLeaving);
+                applyImageAnimationState(position, background,btn, tvDot, activity, isLeaving);
             }
         });
         //5.process anim
@@ -130,7 +143,6 @@ public class TPhotoViewer {
                     }
                     pagerAdapter.setActivated(true);
                     animator.enter(pos, true);
-                    showFullScreen(true);
                 }
             });
         }
@@ -155,7 +167,6 @@ public class TPhotoViewer {
             public void onClickFullImage() {
                 if (!animator.isLeaving()) {
                     animator.exit(true);
-                    showFullScreen(false);
                 }
             }
         });
@@ -165,29 +176,22 @@ public class TPhotoViewer {
     /**
      * 改变viewpager的背景色
      */
-    private void applyImageAnimationState(float position, View background, TextView tvDot
+    private void applyImageAnimationState(float position, View background,View btn, TextView tvDot
             , Activity activity, boolean isLeaving) {
         if (null == activity) {
             return;
         }
         background.setVisibility(position == 0f ? View.INVISIBLE : View.VISIBLE);
         background.setAlpha(position);
+        btn.setVisibility(position == 0f ? View.INVISIBLE : View.VISIBLE);
+        btn.setAlpha(position);
         tvDot.setVisibility(position == 0f ? View.INVISIBLE : View.VISIBLE);
         tvDot.setAlpha(position);
         if (isLeaving && position == 0f) {
             if (null != pagerAdapter){
                 pagerAdapter.setActivated(false);
             }
-            showFullScreen(false);
         }
-//        // Fading out images without "from" position
-//        if (animator.getFromView() == null && isLeaving) {
-//            float toPosition = animator.getToView() == null
-//                    ? 1f : animator.getToView().getPositionAnimator().getToPosition();
-//            viewPager.setAlpha(position / toPosition);
-//        } else {
-//            viewPager.setAlpha(1f);
-//        }
     }
 
     /**
@@ -203,8 +207,6 @@ public class TPhotoViewer {
             return null;
         }
         inflater = LayoutInflater.from(activity);
-        //状态栏颜色变化初始化
-        registerSystemUiListener(activity);
         ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
         //1.add group
         View gestureview = inflater.inflate(R.layout.layout_one_getstureview, rootViewGroup, false);
@@ -214,6 +216,10 @@ public class TPhotoViewer {
         contentLoadingProgressBar = gestureview.findViewById(R.id.cprogressbar);
         contentLoadingProgressBar.getIndeterminateDrawable().setColorFilter(ContextCompat.getColor(activity, R.color.blue_material), PorterDuff.Mode.MULTIPLY);
         hideContentProgress();
+        ImageView btn = gestureview.findViewById(R.id.iv_download);
+        btn.setOnClickListener(v->{
+            downloadImg(tImgBean.getOriginUrl(), activity);
+        });
 
         View fullBackground = gestureview.findViewById(R.id.single_image_back);
 
@@ -226,11 +232,9 @@ public class TPhotoViewer {
             public void onPositionUpdate(float position, boolean isLeaving) {
                 fullBackground.setAlpha(position);
                 fullBackground.setVisibility(position == 0f && isLeaving ? View.INVISIBLE : View.VISIBLE);
+                btn.setAlpha(position);
+                btn.setVisibility(position == 0f && isLeaving ? View.INVISIBLE : View.VISIBLE);
                 fullImage.setVisibility(position == 0f && isLeaving ? View.INVISIBLE : View.VISIBLE);
-//                image.setVisibility(position == 0f && isLeaving ? View.VISIBLE : View.INVISIBLE);
-                if (isLeaving && position == 0f) {
-                    showFullScreen(false);
-                }
             }
         });
         image.setOnClickListener(new View.OnClickListener() {
@@ -241,7 +245,6 @@ public class TPhotoViewer {
                     fullImage.setImageDrawable(image.getDrawable());
                 }
                 animator.enterSingle(true);
-                showFullScreen(true);
                 showOneFullImage();
             }
 
@@ -280,7 +283,6 @@ public class TPhotoViewer {
             if (!animator.isLeaving()) {
                 hideContentProgress();
                 animator.exit(true);
-                showFullScreen(false);
             }
         });
 
@@ -300,33 +302,61 @@ public class TPhotoViewer {
         }
     }
 
-    private void registerSystemUiListener(Activity activity) {
-        mSystemUiHelper = new SystemUiHelper(activity, SystemUiHelper.LEVEL_LOW_PROFILE,
-                SystemUiHelper.FLAG_LAYOUT_IN_SCREEN_OLDER_DEVICES, new SystemUiHelper.OnVisibilityChangeListener() {
-            @Override
-            public void onVisibilityChange(boolean visible) {
-                if (!visible) {
-                    StatusBarUtil.setColor(activity, Color.BLACK);
-                } else {
-                    StatusBarUtil.setTranslucent(activity);
-                }
-            }
-        });
-    }
 
     /**
-     * Shows or hides fullscreen.
+     * 下载图片
+     *
+     * @param url
      */
-    private void showFullScreen(boolean show) {
-        if (show) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mSystemUiHelper.hide();
-                }
-            }, 500);
+    private void downloadImg(String url, Context context) {
+      Activity activity = (Activity) context;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            activity.requestPermissions(new String[]{Manifest.permission_group.STORAGE},1001);
+        }
+        if(TextUtils.isEmpty(url)){
+            return;
+        }
+        String fileName = splitrUrl(url);
+        File file = new File(Environment.getExternalStorageDirectory() + FOLDER + fileName);
+        if (!file.exists() || file.length() <= 0) {
+            File dir = new File(Environment.getExternalStorageDirectory()
+                    + FOLDER);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            Glide.with(context)
+                    .asBitmap()
+                    .load(url)
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            if (null != resource) {
+                                FileUtil.getInstance().saveIMG(fileName, resource, context);
+                                Toast.makeText(context, "保存成功", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                            Toast.makeText(context, "图片下载失败", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         } else {
-            mSystemUiHelper.show();
+            KLog.e("图片____yicunzai");
+            Toast.makeText(context, "保存成功", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static String splitrUrl(String s) {
+        if (TextUtils.isEmpty(s)) {
+            return "";
+        } else {
+            int i = s.lastIndexOf("/");
+            if(i>0){
+                return s.substring(i);
+            }else {
+                return s;
+            }
         }
     }
 

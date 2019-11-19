@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <View
         android:id="@+id/single_image_back"
         android:layout_width="match_parent"
@@ -13,7 +14,10 @@
         android:id="@+id/single_image_full"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        app:gest_doubleTapZoom="2"
+        app:gest_fitMethod="horizontal"
+        app:gest_maxZoom="4"/>
     <android.support.v4.widget.ContentLoadingProgressBar
         android:id="@+id/cprogressbar"
         style="?android:attr/progressBarStyleSmall"
@@ -21,4 +25,15 @@
         android:visibility="gone"
         android:layout_gravity="center"
         android:layout_height="38dp" />
+    <ImageView
+        android:id="@+id/iv_download"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="right|bottom"
+        android:layout_marginRight="18dp"
+        android:layout_marginBottom="18dp"
+        android:background="#55000000"
+        android:contentDescription="@string/app_name"
+        android:padding="6dp"
+        android:src="@drawable/ic_download" />
 </FrameLayout>

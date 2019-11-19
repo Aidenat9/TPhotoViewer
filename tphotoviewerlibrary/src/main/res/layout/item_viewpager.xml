@@ -8,9 +8,10 @@
     <com.alexvasilkov.gestures.views.GestureImageView
         android:id="@+id/photo_full_image"
         android:layout_width="match_parent"
+        app:gest_fitMethod="horizontal"
         android:layout_height="match_parent"
         app:gest_doubleTapZoom="2"
-        app:gest_maxZoom="6" />
+        app:gest_maxZoom="4" />
 
     <ProgressBar
         android:id="@+id/photo_full_progress"
