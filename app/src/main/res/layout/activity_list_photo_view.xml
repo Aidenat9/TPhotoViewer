@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".ListPhotoViewActivity">
 
-    <android.support.v7.widget.RecyclerView
+    <com.github.tianmu19.tphotoviewer.GridRecyclerView
         android:id="@+id/recycler_list"
         android:paddingLeft="3dp"
         android:paddingRight="3dp"

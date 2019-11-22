@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 
 import com.alexvasilkov.gestures.transition.ViewsTransitionAnimator;
 import com.github.tianmu19.tphotoviewerlibrary.StatusBarUtil;
@@ -42,7 +44,7 @@ public class ListPhotoViewActivity extends AppCompatActivity {
 
     private void initRecyclerView() {
         // 1.Initializing RecyclerView
-        RecyclerView recyclerView = findViewById(R.id.recycler_list);
+        GridRecyclerView recyclerView = findViewById(R.id.recycler_list);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
@@ -63,6 +65,9 @@ public class ListPhotoViewActivity extends AppCompatActivity {
         });
         RecyclerAdapter adapter = new RecyclerAdapter(imageUrls);
         recyclerView.setAdapter(adapter);
+        LayoutAnimationController animationController = AnimationUtils.loadLayoutAnimation(this, R.anim.grid_layout_animation_scale_random);
+        recyclerView.setLayoutAnimation(animationController);
+        recyclerView.scheduleLayoutAnimation();
         animator = TPhotoViewer.getInstance().clickDisplay(this, recyclerView, imageUrls);
     }
 
