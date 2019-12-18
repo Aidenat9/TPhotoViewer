@@ -19,6 +19,8 @@ public class ListPhotoViewActivity2 extends AppCompatActivity {
     private List<TImgBean> imageShowUrls;//图片地址
     private List<TImgBean> imageUrls;//图片地址
     private ViewsTransitionAnimator<Integer> animator;
+    private TPhotoViewer tPhotoViewer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,8 +35,12 @@ public class ListPhotoViewActivity2 extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false));
         RecyclerAdapter adapter = new RecyclerAdapter(imageUrls);
         recyclerView.setAdapter(adapter);
-        animator = TPhotoViewer.getInstance().clickDisplay(this, recyclerView, imageShowUrls);
+        if(null== tPhotoViewer){
+            tPhotoViewer = new TPhotoViewer();
+        }
+        animator = tPhotoViewer.clickDisplay(this, recyclerView, imageShowUrls);
     }
+
 
     @Override
     public void onBackPressed() {
@@ -44,6 +50,7 @@ public class ListPhotoViewActivity2 extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
 
     private void initData() {
         //总共4张图，展示3个

@@ -66,16 +66,8 @@ public class TPhotoViewer {
     private View view;
     private ViewGroup rootViewGroup;
 
-    public static TPhotoViewer getInstance() {
-        return InstanceHolder.ourInstance;
-    }
 
-    private static class InstanceHolder {
-        @SuppressLint("StaticFieldLeak")
-        private static final TPhotoViewer ourInstance = new TPhotoViewer();
-    }
-
-    private TPhotoViewer() {
+    public TPhotoViewer() {
     }
 
     /**

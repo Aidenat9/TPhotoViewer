@@ -32,6 +32,7 @@ import java.util.List;
 public class ListPhotoViewActivity extends AppCompatActivity {
     private List<TImgBean> imageUrls;//图片地址
     private ViewsTransitionAnimator<Integer> animator;
+    private TPhotoViewer tPhotoViewer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +69,10 @@ public class ListPhotoViewActivity extends AppCompatActivity {
         LayoutAnimationController animationController = AnimationUtils.loadLayoutAnimation(this, R.anim.grid_layout_animation_scale_random);
         recyclerView.setLayoutAnimation(animationController);
         recyclerView.scheduleLayoutAnimation();
-        animator = TPhotoViewer.getInstance().clickDisplay(this, recyclerView, imageUrls);
+        if(null==tPhotoViewer){
+            tPhotoViewer = new TPhotoViewer();
+        }
+        animator = tPhotoViewer.clickDisplay(this, recyclerView, imageUrls);
     }
 
     @Override

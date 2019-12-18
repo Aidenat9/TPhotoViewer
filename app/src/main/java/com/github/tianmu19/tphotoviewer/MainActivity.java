@@ -18,6 +18,7 @@ import com.klogutil.KLog;
 public class MainActivity extends AppCompatActivity {
     private final static String photoUrl = "http://t2.hddhhn.com/uploads/tu/201806/9999/bdab122a85.jpg";
     private ViewsTransitionAnimator animator;
+    private TPhotoViewer tPhotoViewer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +35,10 @@ public class MainActivity extends AppCompatActivity {
         entity.setOriginUrl(photoUrl);
         entity.setThumbUrl(photoUrl);
         KLog.e("___oncreate");
-        animator = TPhotoViewer.getInstance().clickDisplayOne(this, image, entity);
+        if(null== tPhotoViewer){
+            tPhotoViewer = new TPhotoViewer();
+        }
+        animator = tPhotoViewer.clickDisplayOne(this, image, entity);
     }
 
     @Override
